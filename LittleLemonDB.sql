@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS `littlelemondb`.`orders` (
 CREATE TABLE IF NOT EXISTS `littlelemondb`.`orders_has_menu` (
   `orders_id` INT NOT NULL,
   `menu_id` INT NOT NULL,
+    `order_quantity` INT NOT NULL,
   PRIMARY KEY (`orders_id`, `menu_id`),
   INDEX `fk_orders_has_menu_menu1_idx` (`menu_id` ASC) VISIBLE,
   INDEX `fk_orders_has_menu_orders1_idx` (`orders_id` ASC) VISIBLE,
