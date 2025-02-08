@@ -168,7 +168,7 @@ select get_item_price(10);
 -- Create the stored procedure
 DELIMITER //
 
-CREATE PROCEDURE InsertOrders(
+CREATE PROCEDURE insert_orders(
     IN items JSON,
     IN bookings_id INT,
     IN staff_id INT,
