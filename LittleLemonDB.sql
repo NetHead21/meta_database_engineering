@@ -209,7 +209,7 @@ BEGIN
         DO
             SET item_id = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].item_id')));
             SET quantity = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].quantity')));
-            SET total_price = quantity * (SELECT price FROM menu WHERE id = item_id);
+            SET total_price = quantity * get_item_price(item_id);
             SET order_total = order_total + total_price;
             SET i = i + 1;
         END WHILE;
@@ -398,25 +398,143 @@ CALL cancel_order(1);
 
 DELIMITER //
 
-CREATE PROCEDURE check_booking(IN booking_date DATE, IN tb_number INT)
+CREATE FUNCTION check_booking(booking_date DATE, tb_number INT)
+    RETURNS BOOLEAN
+    DETERMINISTIC
 BEGIN
     DECLARE booking_exists BOOLEAN;
 
-    -- Check if the booking exists for the given date and table number.
-    SET booking_exists = EXISTS(
-        SELECT id
-        from bookings
-        where DATE(booking_date_time) = booking_date
-          and table_number = tb_number
-    );
+    -- Check if the booking exists for the given date and table number
+    SET booking_exists = EXISTS(SELECT 1
+                                FROM bookings
+                                WHERE DATE(booking_date_time) = booking_date
+                                  AND table_number = tb_number);
 
-    IF booking_exists THEN
-        SELECT CONCAT('Table ', tb_number, ' is already booked on ', booking_date);
+    RETURN booking_exists;
+END //
+
+DELIMITER ;
+
+select check_booking('2025-02-11 13:00:00', 3);
+
+DELIMITER //
+
+CREATE PROCEDURE make_booking(IN v_booking_date_time DATETIME, IN v_table_number INT, IN v_customer_id INT)
+BEGIN
+    DECLARE EXIT HANDLER FOR 1062
+    BEGIN
+        SELECT 'Booking failed: Duplicate entry or constraint violation' AS message;
+    END;
+
+    START TRANSACTION;
+    -- Prepare the insert statement for the bookings table
+    SET @v_booking_date_time = v_booking_date_time;
+    SET @v_table_number = v_table_number;
+    SET @v_customer_id = v_customer_id;
+
+    SET @insert_booking_sql = 'INSERT INTO bookings (booking_date_time, table_number, customers_id) VALUES (?, ?, ?)';
+    PREPARE stmt_booking FROM @insert_booking_sql;
+    EXECUTE stmt_booking USING @v_booking_date_time, @v_table_number, @v_customer_id;
+
+    SELECT 'Booking was successful' AS message;
+
+    DEALLOCATE PREPARE stmt_booking;
+    COMMIT;
+
+END //
+
+DELIMITER ;
+
+call make_booking('2025-02-17 12:00:00', 6, 6);
+
+
+
+
+
+DELIMITER //
+
+CREATE PROCEDURE update_booking(IN v_booking_id INT, IN v_booking_date_time DATETIME)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            -- Rollback the transaction if an error occurs
+            ROLLBACK;
+            -- Return the failure message
+            SELECT 'Booking update failed' AS message;
+        END;
+
+    START TRANSACTION;
+
+    -- Check if the booking exists
+    IF EXISTS (SELECT * FROM bookings WHERE id = v_booking_id) THEN
+        -- Prepare the update statement for the bookings table
+        SET @v_booking_id = v_booking_id;
+        SET @v_booking_date_time = v_booking_date_time;
+
+        SET @update_booking_sql = 'UPDATE bookings SET booking_date_time = ? WHERE id = ?';
+        PREPARE stmt_booking FROM @update_booking_sql;
+        EXECUTE stmt_booking USING @v_booking_date_time, @v_booking_id;
+        DEALLOCATE PREPARE stmt_booking;
+
+        -- Commit the transaction
+        COMMIT;
+
+        -- Return the success message
+        SELECT 'Booking update was successful' AS message;
     ELSE
-        SELECT CONCAT('Table ', tb_number, ' is available on ', booking_date);
+        -- Rollback the transaction if the booking does not exist
+        ROLLBACK;
+        -- Return the failure message
+        SELECT CONCAT('Booking with booking id ', v_booking_id, ' not found.') AS message;
     END IF;
 END //
 
 DELIMITER ;
 
-CALL check_booking('2025-02-12 13:00:00', 3);
+call update_booking(25, '2025-02-20 12:00:00');
+
+
+
+
+
+DELIMITER //
+
+CREATE PROCEDURE delete_booking(IN v_booking_id INT)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            -- Rollback the transaction if an error occurs
+            ROLLBACK;
+            -- Return the failure message
+            SELECT 'Deletion failed' AS message;
+        END;
+
+    START TRANSACTION;
+
+    -- Check if the booking exists
+    IF EXISTS (SELECT * FROM bookings WHERE id = v_booking_id) THEN
+        -- Prepare the update statement for the bookings table
+        SET @v_booking_id = v_booking_id;
+
+        SET @delete_booking_sql = 'DELETE FROM bookings WHERE id = ?';
+        PREPARE stmt_booking FROM @delete_booking_sql;
+        EXECUTE stmt_booking USING @v_booking_id;
+        DEALLOCATE PREPARE stmt_booking;
+
+        -- Commit the transaction
+        COMMIT;
+
+        -- Return the success message
+        SELECT CONCAT('Booking ', @v_booking_id, ' was deleted successfully.') AS message;
+    ELSE
+        -- Rollback the transaction if the booking does not exist
+        ROLLBACK;
+        -- Return the failure message
+        SELECT CONCAT('Booking with booking id ', v_booking_id, ' not found.') AS message;
+    END IF;
+END //
+
+DELIMITER ;
+
+call delete_booking(14);
+
