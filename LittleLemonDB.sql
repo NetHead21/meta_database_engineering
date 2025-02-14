@@ -314,7 +314,7 @@ select *
 from orders_view;
 
 
-
+-- Create a virtual table to summarize data
 CREATE VIEW customers_order_view AS
 SELECT c.id   AS customer_id,
        c.name AS customer_name,
@@ -359,7 +359,22 @@ select menu_item_name, order_quantity
 from customers_order_view
 where order_quantity >= 5;
 
+-- -----------------------------------------------------
+-- Task 1 - get_max_order stored procedure
+DELIMITER //
 
+CREATE PROCEDURE get_max_order()
+BEGIN
+    select max(order_quantity) as "Max Quantity in Order" from orders_has_menu;
+END //
+
+DELIMITER ;
+
+CALL get_max_order();
+
+
+
+-- Task 3 - CancelOrder procedure
 DELIMITER //
 
 CREATE PROCEDURE cancel_order(IN order_id INT)
