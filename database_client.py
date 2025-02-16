@@ -3,6 +3,21 @@ import secret
 
 
 def get_connection():
+    """
+    Establishes and returns a connection to the LittleLemonDB database.
+
+    This function uses the mysql.connector library to connect to the MySQL database
+    using the credentials and database information provided in the secret module.
+
+    Note: create secrets.py file in the same directory as this file and add the following line:
+    PASSWORD = "your_mysql_password"
+
+    Returns:
+        mysql.connector.connection.MySQLConnection: A MySQL connection object.
+
+    Raises:
+        mysql.connector.Error: If there is an error connecting to the database.
+    """
     conn = mysql.connector.connect(
         host="localhost",
         user="root",
