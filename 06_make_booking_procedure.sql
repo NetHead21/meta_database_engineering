@@ -1,3 +1,7 @@
+-- source 03_LittleLemonDB_with_data_sqldump.sql
+-- this stored procedure is also included in the 
+-- 03_LittleLemonDB_with_data_sqldump.sql
+
 
 DELIMITER //
 
@@ -27,5 +31,7 @@ END //
 
 DELIMITER ;
 
+
+-- test make_booking() procedure
 call make_booking('2025-02-17 12:00:00', 6, 6);
 

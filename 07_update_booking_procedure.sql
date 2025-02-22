@@ -1,15 +1,18 @@
+-- source 03_LittleLemonDB_with_data_sqldump.sql
+-- this stored procedure is also included in the 
+-- 03_LittleLemonDB_with_data_sqldump.sql
 
 
 DELIMITER //
 
-CREATE PROCEDURE delete_booking(IN v_booking_id INT)
+CREATE PROCEDURE update_booking(IN v_booking_id INT, IN v_booking_date_time DATETIME)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         -- Rollback the transaction if an error occurs
         ROLLBACK;
         -- Return the failure message
-        SELECT 'Deletion failed' AS message;
+        SELECT 'Booking update failed' AS message;
     END;
 
     START TRANSACTION;
@@ -18,17 +21,18 @@ BEGIN
     IF EXISTS (SELECT * FROM bookings WHERE id = v_booking_id) THEN
         -- Prepare the update statement for the bookings table
         SET @v_booking_id = v_booking_id;
+        SET @v_booking_date_time = v_booking_date_time;
 
-        SET @delete_booking_sql = 'DELETE FROM bookings WHERE id = ?';
-        PREPARE stmt_booking FROM @delete_booking_sql;
-        EXECUTE stmt_booking USING @v_booking_id;
+        SET @update_booking_sql = 'UPDATE bookings SET booking_date_time = ? WHERE id = ?';
+        PREPARE stmt_booking FROM @update_booking_sql;
+        EXECUTE stmt_booking USING @v_booking_date_time, @v_booking_id;
         DEALLOCATE PREPARE stmt_booking;
 
         -- Commit the transaction
         COMMIT;
 
         -- Return the success message
-        SELECT CONCAT('Booking ', @v_booking_id, ' was deleted successfully.') AS message;
+        SELECT 'Booking update was successful' AS message;
     ELSE
         -- Rollback the transaction if the booking does not exist
         ROLLBACK;
@@ -39,4 +43,6 @@ END //
 
 DELIMITER ;
 
-call delete_booking(14);
+-- test update_booking
+call update_booking(25, '2025-02-20 12:00:00');
+

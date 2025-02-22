@@ -1,3 +1,6 @@
+-- source 03_LittleLemonDB_with_data_sqldump.sql
+-- this view is also included in the 
+-- 03_LittleLemonDB_with_data_sqldump.sql
 
 -- Create a virtual table to summarize data
 CREATE VIEW customers_order_view AS
@@ -24,3 +27,24 @@ FROM customers c
      orders_has_menu ohm ON o.id = ohm.orders_id
          JOIN
      menu m ON ohm.menu_id = m.id;
+
+
+
+-- Test the customers_order_view
+select distinct customer_id,
+                customer_name,
+                booking_id,
+                booking_date_time,
+                table_number,
+                staff_name,
+                total_cost,
+                status
+from customers_order_view;
+
+
+select *
+from customers_order_view;
+
+select menu_item_name, order_quantity
+from customers_order_view
+where order_quantity >= 5;

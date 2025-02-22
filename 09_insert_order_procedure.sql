@@ -1,3 +1,7 @@
+-- source 03_LittleLemonDB_with_data_sqldump.sql
+-- this stored procedure is also included in the 
+-- 03_LittleLemonDB_with_data_sqldump.sql
+
 -- Create the stored procedure
 DELIMITER //
 
@@ -59,7 +63,7 @@ BEGIN
 
 DELIMITER ;
 
--- Call the stored procedure
+-- test the stored procedure
     CALL insert_orders('[
   {
     "item_id": 1,

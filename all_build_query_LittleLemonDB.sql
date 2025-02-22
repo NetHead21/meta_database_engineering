@@ -218,7 +218,11 @@ BEGIN
     SET @insert_order_sql =
             'INSERT INTO orders (order_datetime, total_cost, status, bookings_id, staff_id) VALUES (NOW(), ?, ?, ?, ?)';
     PREPARE stmt_order FROM @insert_order_sql;
-    EXECUTE stmt_order USING @order_total, order_status, bookings_id, staff_id;
+    SET @order_total = order_total;
+    SET @order_status = order_status;
+    SET @bookings_id = bookings_id;
+    SET @staff_id = staff_id;
+    EXECUTE stmt_order USING @order_total, @order_status, @bookings_id, @staff_id;
     DEALLOCATE PREPARE stmt_order;
 
     -- Get the last inserted order ID
@@ -234,9 +238,10 @@ BEGIN
     -- Insert the items into the orders_has_menu table
     WHILE i < n
         DO
-            SET item_id = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].item_id')));
-            SET quantity = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].quantity')));
-            EXECUTE stmt_order_item USING new_order_id, item_id, quantity;
+            SET @item_id = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].item_id')));
+            SET @quantity = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].quantity')));
+            SET @new_order_id = new_order_id;
+            EXECUTE stmt_order_item USING @new_order_id, @item_id, @quantity;
             SET i = i + 1;
         END WHILE;
 
