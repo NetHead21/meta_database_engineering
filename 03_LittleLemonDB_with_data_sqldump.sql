@@ -15,6 +15,9 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+DROP DATABASE IF EXISTS littlelemondb;
+CREATE DATABASE littlelemondb;
+USE littlelemondb;
 --
 -- Table structure for table `bookings`
 --
@@ -235,16 +238,26 @@ UNLOCK TABLES;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` FUNCTION `check_booking`(booking_date DATE, tb_number INT) RETURNS tinyint(1)
     DETERMINISTIC
-BEGIN
-    DECLARE booking_exists BOOLEAN;
-
-    -- Check if the booking exists for the given date and table number
-    SET booking_exists = EXISTS(SELECT 1
-                                FROM bookings
-                                WHERE DATE(booking_date_time) = booking_date
-                                  AND table_number = tb_number);
-
-    RETURN booking_exists;
+BEGIN
+
+    DECLARE booking_exists BOOLEAN;
+
+
+
+    -- Check if the booking exists for the given date and table number
+
+    SET booking_exists = EXISTS(SELECT 1
+
+                                FROM bookings
+
+                                WHERE DATE(booking_date_time) = booking_date
+
+                                  AND table_number = tb_number);
+
+
+
+    RETURN booking_exists;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -263,13 +276,20 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` FUNCTION `get_item_price`(item_id int) RETURNS decimal(10,2)
     DETERMINISTIC
-begin
-    declare item_price decimal(10, 2);
-    select price
-    into item_price
-    from menu
-    where id = item_id;
-    return item_price;
+begin
+
+    declare item_price decimal(10, 2);
+
+    select price
+
+    into item_price
+
+    from menu
+
+    where id = item_id;
+
+    return item_price;
+
 end ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -287,30 +307,54 @@ DELIMITER ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `cancel_order`(IN order_id INT)
-BEGIN
-    DECLARE order_status ENUM ('Place', 'Delivered', 'Canceled');
-
-    -- Get the current status of the order
-    SELECT status
-    INTO order_status
-    FROM orders
-    WHERE id = order_id;
-
-    -- Check if the order is in the "Placed" status
-    IF order_status = 'Place' THEN
-        -- Update the order status to "Canceled"
-        UPDATE orders
-        SET status = 'Canceled'
-        WHERE id = order_id;
-    ELSEIF order_status = 'Delivered' THEN
-        -- Raise an error if the order has already been delivered
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Order cannot be canceled as it has already been delivered';
-    ELSE
-        -- Raise an error if the order is not found or already canceled
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Order not found or already canceled';
-    END IF;
+BEGIN
+
+    DECLARE order_status ENUM ('Place', 'Delivered', 'Canceled');
+
+
+
+    -- Get the current status of the order
+
+    SELECT status
+
+    INTO order_status
+
+    FROM orders
+
+    WHERE id = order_id;
+
+
+
+    -- Check if the order is in the "Placed" status
+
+    IF order_status = 'Place' THEN
+
+        -- Update the order status to "Canceled"
+
+        UPDATE orders
+
+        SET status = 'Canceled'
+
+        WHERE id = order_id;
+
+    ELSEIF order_status = 'Delivered' THEN
+
+        -- Raise an error if the order has already been delivered
+
+        SIGNAL SQLSTATE '45000'
+
+            SET MESSAGE_TEXT = 'Order cannot be canceled as it has already been delivered';
+
+    ELSE
+
+        -- Raise an error if the order is not found or already canceled
+
+        SIGNAL SQLSTATE '45000'
+
+            SET MESSAGE_TEXT = 'Order not found or already canceled';
+
+    END IF;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -328,38 +372,70 @@ DELIMITER ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `delete_booking`(IN v_booking_id INT)
-BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            -- Rollback the transaction if an error occurs
-            ROLLBACK;
-            -- Return the failure message
-            SELECT 'Deletion failed' AS message;
-        END;
-
-    START TRANSACTION;
-
-    -- Check if the booking exists
-    IF EXISTS (SELECT * FROM bookings WHERE id = v_booking_id) THEN
-        -- Prepare the update statement for the bookings table
-        SET @v_booking_id = v_booking_id;
-
-        SET @delete_booking_sql = 'DELETE FROM bookings WHERE id = ?';
-        PREPARE stmt_booking FROM @delete_booking_sql;
-        EXECUTE stmt_booking USING @v_booking_id;
-        DEALLOCATE PREPARE stmt_booking;
-
-        -- Commit the transaction
-        COMMIT;
-
-        -- Return the success message
-        SELECT CONCAT('Booking ', @v_booking_id, ' was deleted successfully.') AS message;
-    ELSE
-        -- Rollback the transaction if the booking does not exist
-        ROLLBACK;
-        -- Return the failure message
-        SELECT CONCAT('Booking with booking id ', v_booking_id, ' not found.') AS message;
-    END IF;
+BEGIN
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+
+        BEGIN
+
+            -- Rollback the transaction if an error occurs
+
+            ROLLBACK;
+
+            -- Return the failure message
+
+            SELECT 'Deletion failed' AS message;
+
+        END;
+
+
+
+    START TRANSACTION;
+
+
+
+    -- Check if the booking exists
+
+    IF EXISTS (SELECT * FROM bookings WHERE id = v_booking_id) THEN
+
+        -- Prepare the update statement for the bookings table
+
+        SET @v_booking_id = v_booking_id;
+
+
+
+        SET @delete_booking_sql = 'DELETE FROM bookings WHERE id = ?';
+
+        PREPARE stmt_booking FROM @delete_booking_sql;
+
+        EXECUTE stmt_booking USING @v_booking_id;
+
+        DEALLOCATE PREPARE stmt_booking;
+
+
+
+        -- Commit the transaction
+
+        COMMIT;
+
+
+
+        -- Return the success message
+
+        SELECT CONCAT('Booking ', @v_booking_id, ' was deleted successfully.') AS message;
+
+    ELSE
+
+        -- Rollback the transaction if the booking does not exist
+
+        ROLLBACK;
+
+        -- Return the failure message
+
+        SELECT CONCAT('Booking with booking id ', v_booking_id, ' not found.') AS message;
+
+    END IF;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -377,8 +453,10 @@ DELIMITER ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `get_max_order`()
-BEGIN
-    select max(order_quantity) as "Max Quantity in Order" from orders_has_menu;
+BEGIN
+
+    select max(order_quantity) as "Max Quantity in Order" from orders_has_menu;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -395,65 +473,123 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_orders`(
-    IN items JSON,
-    IN bookings_id INT,
-    IN staff_id INT,
-    IN order_status ENUM ('Place', 'Delivered', 'Canceled')
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_orders`(
+
+    IN items JSON,
+
+    IN bookings_id INT,
+
+    IN staff_id INT,
+
+    IN order_status ENUM ('Place', 'Delivered', 'Canceled')
+
 )
-BEGIN
-    DECLARE item_id INT;
-    DECLARE quantity INT;
-    DECLARE total_price DECIMAL(10, 2);
-    DECLARE i INT DEFAULT 0;
-    DECLARE n INT;
-    DECLARE order_total DECIMAL(10, 2) DEFAULT 0;
-    DECLARE new_order_id INT;
-
-    SET n = JSON_LENGTH(items);
-
-    -- Calculate the total cost of the order
-    WHILE i < n
-        DO
-            SET item_id = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].item_id')));
-            SET quantity = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].quantity')));
-            SET total_price = quantity * get_item_price(item_id);
-            SET order_total = order_total + total_price;
-            SET i = i + 1;
-        END WHILE;
-
-    -- Prepare the insert statement for the orders table
-    SET @insert_order_sql =
-            'INSERT INTO orders (order_datetime, total_cost, status, bookings_id, staff_id) VALUES (NOW(), ?, ?, ?, ?)';
-    PREPARE stmt_order FROM @insert_order_sql;
-    SET @order_total = order_total;
-    SET @order_status = order_status;
-    SET @bookings_id = bookings_id;
-    SET @staff_id = staff_id;
-    EXECUTE stmt_order USING @order_total, @order_status, @bookings_id, @staff_id;
-    DEALLOCATE PREPARE stmt_order;
-
-    -- Get the last inserted order ID
-    SET new_order_id = LAST_INSERT_ID();
-
-    -- Reset the loop counter
-    SET i = 0;
-
-    -- Prepare the insert statement for the orders_has_menu table
-    SET @insert_order_item_sql = 'INSERT INTO orders_has_menu (orders_id, menu_id, order_quantity) VALUES (?, ?, ?)';
-    PREPARE stmt_order_item FROM @insert_order_item_sql;
-
-    -- Insert the items into the orders_has_menu table
-    WHILE i < n
-        DO
-            SET @item_id = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].item_id')));
-            SET @quantity = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].quantity')));
-            SET @new_order_id = new_order_id;
-            EXECUTE stmt_order_item USING @new_order_id, @item_id, @quantity;
-            SET i = i + 1;
-        END WHILE;
-
-    DEALLOCATE PREPARE stmt_order_item;
+BEGIN
+
+    DECLARE item_id INT;
+
+    DECLARE quantity INT;
+
+    DECLARE total_price DECIMAL(10, 2);
+
+    DECLARE i INT DEFAULT 0;
+
+    DECLARE n INT;
+
+    DECLARE order_total DECIMAL(10, 2) DEFAULT 0;
+
+    DECLARE new_order_id INT;
+
+
+
+    SET n = JSON_LENGTH(items);
+
+
+
+    -- Calculate the total cost of the order
+
+    WHILE i < n
+
+        DO
+
+            SET item_id = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].item_id')));
+
+            SET quantity = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].quantity')));
+
+            SET total_price = quantity * get_item_price(item_id);
+
+            SET order_total = order_total + total_price;
+
+            SET i = i + 1;
+
+        END WHILE;
+
+
+
+    -- Prepare the insert statement for the orders table
+
+    SET @insert_order_sql =
+
+            'INSERT INTO orders (order_datetime, total_cost, status, bookings_id, staff_id) VALUES (NOW(), ?, ?, ?, ?)';
+
+    PREPARE stmt_order FROM @insert_order_sql;
+
+    SET @order_total = order_total;
+
+    SET @order_status = order_status;
+
+    SET @bookings_id = bookings_id;
+
+    SET @staff_id = staff_id;
+
+    EXECUTE stmt_order USING @order_total, @order_status, @bookings_id, @staff_id;
+
+    DEALLOCATE PREPARE stmt_order;
+
+
+
+    -- Get the last inserted order ID
+
+    SET new_order_id = LAST_INSERT_ID();
+
+
+
+    -- Reset the loop counter
+
+    SET i = 0;
+
+
+
+    -- Prepare the insert statement for the orders_has_menu table
+
+    SET @insert_order_item_sql = 'INSERT INTO orders_has_menu (orders_id, menu_id, order_quantity) VALUES (?, ?, ?)';
+
+    PREPARE stmt_order_item FROM @insert_order_item_sql;
+
+
+
+    -- Insert the items into the orders_has_menu table
+
+    WHILE i < n
+
+        DO
+
+            SET @item_id = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].item_id')));
+
+            SET @quantity = JSON_UNQUOTE(JSON_EXTRACT(items, CONCAT('$[', i, '].quantity')));
+
+            SET @new_order_id = new_order_id;
+
+            EXECUTE stmt_order_item USING @new_order_id, @item_id, @quantity;
+
+            SET i = i + 1;
+
+        END WHILE;
+
+
+
+    DEALLOCATE PREPARE stmt_order_item;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -471,27 +607,48 @@ DELIMITER ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `make_booking`(IN v_booking_date_time DATETIME, IN v_table_number INT, IN v_customer_id INT)
-BEGIN
-    DECLARE EXIT HANDLER FOR 1062
-    BEGIN
-        SELECT 'Booking failed: Duplicate entry or constraint violation' AS message;
-    END;
-
-    START TRANSACTION;
-    -- Prepare the insert statement for the bookings table
-    SET @v_booking_date_time = v_booking_date_time;
-    SET @v_table_number = v_table_number;
-    SET @v_customer_id = v_customer_id;
-
-    SET @insert_booking_sql = 'INSERT INTO bookings (booking_date_time, table_number, customers_id) VALUES (?, ?, ?)';
-    PREPARE stmt_booking FROM @insert_booking_sql;
-    EXECUTE stmt_booking USING @v_booking_date_time, @v_table_number, @v_customer_id;
-
-    SELECT 'Booking was successful' AS message;
-
-    DEALLOCATE PREPARE stmt_booking;
-    COMMIT;
-
+BEGIN
+
+    DECLARE EXIT HANDLER FOR 1062
+
+    BEGIN
+
+        SELECT 'Booking failed: Duplicate entry or constraint violation' AS message;
+
+    END;
+
+
+
+    START TRANSACTION;
+
+    -- Prepare the insert statement for the bookings table
+
+    SET @v_booking_date_time = v_booking_date_time;
+
+    SET @v_table_number = v_table_number;
+
+    SET @v_customer_id = v_customer_id;
+
+
+
+    SET @insert_booking_sql = 'INSERT INTO bookings (booking_date_time, table_number, customers_id) VALUES (?, ?, ?)';
+
+    PREPARE stmt_booking FROM @insert_booking_sql;
+
+    EXECUTE stmt_booking USING @v_booking_date_time, @v_table_number, @v_customer_id;
+
+
+
+    SELECT 'Booking was successful' AS message;
+
+
+
+    DEALLOCATE PREPARE stmt_booking;
+
+    COMMIT;
+
+
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -509,39 +666,72 @@ DELIMITER ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `update_booking`(IN v_booking_id INT, IN v_booking_date_time DATETIME)
-BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            -- Rollback the transaction if an error occurs
-            ROLLBACK;
-            -- Return the failure message
-            SELECT 'Booking update failed' AS message;
-        END;
-
-    START TRANSACTION;
-
-    -- Check if the booking exists
-    IF EXISTS (SELECT * FROM bookings WHERE id = v_booking_id) THEN
-        -- Prepare the update statement for the bookings table
-        SET @v_booking_id = v_booking_id;
-        SET @v_booking_date_time = v_booking_date_time;
-
-        SET @update_booking_sql = 'UPDATE bookings SET booking_date_time = ? WHERE id = ?';
-        PREPARE stmt_booking FROM @update_booking_sql;
-        EXECUTE stmt_booking USING @v_booking_date_time, @v_booking_id;
-        DEALLOCATE PREPARE stmt_booking;
-
-        -- Commit the transaction
-        COMMIT;
-
-        -- Return the success message
-        SELECT 'Booking update was successful' AS message;
-    ELSE
-        -- Rollback the transaction if the booking does not exist
-        ROLLBACK;
-        -- Return the failure message
-        SELECT CONCAT('Booking with booking id ', v_booking_id, ' not found.') AS message;
-    END IF;
+BEGIN
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+
+        BEGIN
+
+            -- Rollback the transaction if an error occurs
+
+            ROLLBACK;
+
+            -- Return the failure message
+
+            SELECT 'Booking update failed' AS message;
+
+        END;
+
+
+
+    START TRANSACTION;
+
+
+
+    -- Check if the booking exists
+
+    IF EXISTS (SELECT * FROM bookings WHERE id = v_booking_id) THEN
+
+        -- Prepare the update statement for the bookings table
+
+        SET @v_booking_id = v_booking_id;
+
+        SET @v_booking_date_time = v_booking_date_time;
+
+
+
+        SET @update_booking_sql = 'UPDATE bookings SET booking_date_time = ? WHERE id = ?';
+
+        PREPARE stmt_booking FROM @update_booking_sql;
+
+        EXECUTE stmt_booking USING @v_booking_date_time, @v_booking_id;
+
+        DEALLOCATE PREPARE stmt_booking;
+
+
+
+        -- Commit the transaction
+
+        COMMIT;
+
+
+
+        -- Return the success message
+
+        SELECT 'Booking update was successful' AS message;
+
+    ELSE
+
+        -- Rollback the transaction if the booking does not exist
+
+        ROLLBACK;
+
+        -- Return the failure message
+
+        SELECT CONCAT('Booking with booking id ', v_booking_id, ' not found.') AS message;
+
+    END IF;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
